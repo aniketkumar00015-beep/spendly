@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="terms-page">
+    <div class="terms-inner">
+        <h1 class="terms-title">Privacy Policy</h1>
+        <p class="terms-meta">Last updated: April 2, 2026</p>
+
+        <div class="terms-section">
+            <h2>1. Data We Collect</h2>
+            <p>When you use Spendly, we collect only the information necessary to provide the service:</p>
+            <ul>
+                <li>Account information — your name and email address provided at registration</li>
+                <li>Expense data — amounts, categories, dates, and descriptions you enter manually</li>
+                <li>Usage data — basic interaction logs used to maintain and improve the service</li>
+            </ul>
+            <p>We do not collect payment information, bank credentials, or any sensitive financial account details.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>2. How We Use Your Data</h2>
+            <p>The data we collect is used solely to operate and improve Spendly:</p>
+            <ul>
+                <li>To create and manage your account</li>
+                <li>To store and display your expense records</li>
+                <li>To generate summaries and spending breakdowns within the app</li>
+                <li>To respond to support requests or feedback you send us</li>
+            </ul>
+            <p>We do not use your data for advertising, profiling, or any purpose beyond delivering the service to you.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>3. Data Storage</h2>
+            <p>Your data is stored securely on our servers. We take reasonable technical measures to protect it from unauthorised access, including encrypted storage of passwords and access controls on our database.</p>
+            <p>You may delete your account at any time. Upon deletion, all your personal data and expense records are permanently removed from our systems.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>4. Third Party Services</h2>
+            <p>Spendly does not share your personal data with third parties for commercial purposes. We may use minimal infrastructure services (such as hosting providers) to run the application. These providers are bound by confidentiality obligations and may not use your data independently.</p>
+            <p>We do not integrate with advertising networks, analytics platforms, or social media services that would have access to your expense data.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>5. Contact Us</h2>
+            <p>If you have questions about this Privacy Policy or how your data is handled, please reach out through the app or contact the project maintainer directly. We are happy to clarify anything or address any concerns you may have.</p>
+        </div>
+
+        <div class="terms-back">
+            <a href="{{ url_for('landing') }}">&larr; Back to home</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
