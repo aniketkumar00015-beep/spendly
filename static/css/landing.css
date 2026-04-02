@@ -1,0 +1,118 @@
+/* ------------------------------------------------------------------ */
+/* Hero overrides — landing page                                       */
+/* ------------------------------------------------------------------ */
+
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 5rem 2rem 3rem;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    gap: 3rem;
+}
+
+.hero-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 680px;
+}
+
+.hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 3.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+}
+
+.hero-title em { font-style: normal; }
+
+.hero-title-accent { color: var(--accent); }
+
+.hero-subtitle {
+    max-width: 520px;
+    text-align: center;
+}
+
+.hero-actions {
+    justify-content: center;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Dashboard mock                                                      */
+/* ------------------------------------------------------------------ */
+
+.hero-dashboard {
+    width: 100%;
+    max-width: 680px;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+}
+
+.dash-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.dash-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.dash-stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dash-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    color: var(--ink);
+    line-height: 1.1;
+}
+
+.dash-stat-change {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.dash-stat-change.positive { color: var(--accent); }
+.dash-stat-change.negative { color: var(--accent-2); }
+.dash-stat-change.neutral  { color: var(--ink-faint); }
+
+.dash-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.dash-bar-row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                          */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 600px) {
+    .dash-stats { grid-template-columns: 1fr; }
+}
