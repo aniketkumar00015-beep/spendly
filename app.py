@@ -1,7 +1,11 @@
-from flask import Flask, render_template
-from database.db import init_db
+import os
+import sqlite3
+from flask import Flask, render_template, request, session, redirect, url_for
+from werkzeug.security import generate_password_hash
+from database.db import init_db, get_db
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-in-prod')
 init_db()
 
 
@@ -14,9 +18,42 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    if request.method == "GET":
+        return render_template("register.html")
+
+    username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    if not all([username, email, password, confirm_password]):
+        return render_template("register.html", error="All fields are required.")
+    if password != confirm_password:
+        return render_template("register.html", error="Passwords do not match.")
+    if "@" not in email:
+        return render_template("register.html", error="Enter a valid email address.")
+    if len(password) < 8:
+        return render_template("register.html", error="Password must be at least 8 characters.")
+
+    password_hash = generate_password_hash(password)
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+                (username, email, password_hash),
+            )
+            user_id = cursor.lastrowid
+    except sqlite3.IntegrityError:
+        conn.close()
+        return render_template("register.html", error="Username or email already registered.")
+
+    conn.close()
+    session["user_id"] = user_id
+    session["username"] = username
+    return redirect(url_for("landing"))
 
 
 @app.route("/login")
