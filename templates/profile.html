@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}{{ username }} — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="profile-page">
+    <div class="profile-wrap">
+
+        {# ---------- Identity card ---------- #}
+        <div class="identity-card">
+            <div class="identity-avatar">{{ initials }}</div>
+            <div class="identity-info">
+                <h1 class="identity-name">{{ username }}</h1>
+                <p class="identity-email">{{ email }}</p>
+                <p class="identity-meta">Member since {{ joined_label }}</p>
+            </div>
+        </div>
+
+        {# ---------- Stats row ---------- #}
+        <div class="stat-row">
+            <div class="stat-card">
+                <span class="stat-label">Total Spent</span>
+                <span class="stat-value stat-value--money">&#8377;{{ "{:,.2f}".format(total_spent) }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Transactions</span>
+                <span class="stat-value">{{ transaction_count }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Top Category</span>
+                <span class="stat-value">{{ top_category if top_category else "—" }}</span>
+            </div>
+        </div>
+
+        {# ---------- Lower grid ---------- #}
+        <div class="lower-grid">
+
+            <div class="panel panel--transactions">
+                <h2 class="panel-title">Recent Transactions</h2>
+
+                {% if recent_transactions %}
+                <div class="tx-table">
+                    <div class="tx-head">
+                        <span>Date</span>
+                        <span>Description</span>
+                        <span>Category</span>
+                        <span class="tx-amount-col">Amount</span>
+                    </div>
+                    {% for tx in recent_transactions %}
+                    <div class="tx-row">
+                        <span class="tx-date">{{ tx.date }}</span>
+                        <span class="tx-title">{{ tx.title }}</span>
+                        <span class="tx-cat">
+                            <span class="cat-pill cat-{{ tx.category_slug }}">{{ tx.category }}</span>
+                        </span>
+                        <span class="tx-amount">&#8377;{{ "{:,.2f}".format(tx.amount) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i data-lucide="wallet"></i>
+                    <p>No expenses yet. Add one to see it here.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="panel panel--categories">
+                <h2 class="panel-title">By Category</h2>
+
+                {% if categories %}
+                <div class="cat-list">
+                    {% for cat in categories %}
+                    <div class="cat-item">
+                        <div class="cat-row-top">
+                            <span class="cat-name">{{ cat.name }}</span>
+                            <span class="cat-amt">&#8377;{{ "{:,.2f}".format(cat.total) }}</span>
+                        </div>
+                        <div class="cat-bar-track">
+                            <div class="cat-bar cat-{{ cat.slug }}" style="width: {{ cat.percent }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i data-lucide="pie-chart"></i>
+                    <p>No category data yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+</script>
+{% endblock %}

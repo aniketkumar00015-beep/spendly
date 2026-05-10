@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import datetime
 from flask import Flask, render_template, request, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import init_db, get_db
@@ -15,13 +16,15 @@ init_db()
 
 @app.route("/")
 def landing():
+    if session.get("user_id"):
+        return redirect(url_for("profile"))
     return render_template("landing.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if session.get("user_id"):
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
     if request.method == "GET":
         return render_template("register.html")
 
@@ -55,13 +58,13 @@ def register():
     conn.close()
     session["user_id"] = user_id
     session["username"] = username
-    return redirect(url_for("landing"))
+    return redirect(url_for("profile"))
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("user_id"):
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
     if request.method == "GET":
         return render_template("login.html")
 
@@ -83,7 +86,7 @@ def login():
     session["user_id"] = row["id"]
     session["username"] = row["username"]
     conn.close()
-    return redirect(url_for("landing"))
+    return redirect(url_for("profile"))
 
 
 # ------------------------------------------------------------------ #
@@ -106,9 +109,101 @@ def logout():
     return redirect(url_for("login"))
 
 
+CATEGORY_SLUGS = {
+    "food", "transport", "bills", "health",
+    "shopping", "entertainment", "other",
+}
+
+
+def _category_slug(name):
+    slug = (name or "").strip().lower().replace(" ", "-")
+    return slug if slug in CATEGORY_SLUGS else "other"
+
+
+def _initials(username):
+    parts = [p for p in (username or "").replace("_", " ").split() if p]
+    if not parts:
+        return "?"
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return (parts[0][0] + parts[1][0]).upper()
+
+
+def _format_date(value):
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").strftime("%d %b %Y")
+    except (TypeError, ValueError):
+        return value or ""
+
+
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    user = conn.execute(
+        "SELECT username, email, created_at FROM users WHERE id = ?",
+        (session["user_id"],),
+    ).fetchone()
+
+    if user is None:
+        conn.close()
+        session.clear()
+        return redirect(url_for("login"))
+
+    expense_rows = conn.execute(
+        "SELECT id, title, amount, category, date "
+        "FROM expenses WHERE user_id = ? "
+        "ORDER BY date DESC, id DESC",
+        (session["user_id"],),
+    ).fetchall()
+    conn.close()
+
+    total_spent = sum(row["amount"] for row in expense_rows)
+    transaction_count = len(expense_rows)
+
+    category_totals = {}
+    for row in expense_rows:
+        category_totals[row["category"]] = category_totals.get(row["category"], 0) + row["amount"]
+
+    top_category = max(category_totals, key=category_totals.get) if category_totals else None
+
+    categories = []
+    if category_totals:
+        max_total = max(category_totals.values())
+        for name, total in sorted(category_totals.items(), key=lambda x: x[1], reverse=True):
+            categories.append({
+                "name": name,
+                "total": total,
+                "percent": (total / max_total) * 100 if max_total else 0,
+                "slug": _category_slug(name),
+            })
+
+    recent_transactions = []
+    for row in expense_rows[:6]:
+        recent_transactions.append({
+            "date": _format_date(row["date"]),
+            "title": row["title"],
+            "category": row["category"],
+            "category_slug": _category_slug(row["category"]),
+            "amount": row["amount"],
+        })
+
+    joined = datetime.strptime(user["created_at"], "%Y-%m-%d %H:%M:%S")
+
+    return render_template(
+        "profile.html",
+        username=user["username"],
+        email=user["email"],
+        initials=_initials(user["username"]),
+        joined_label=joined.strftime("%d %b %Y"),
+        total_spent=total_spent,
+        transaction_count=transaction_count,
+        top_category=top_category,
+        categories=categories,
+        recent_transactions=recent_transactions,
+    )
 
 
 @app.route("/expenses/add")
