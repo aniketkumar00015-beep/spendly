@@ -1,0 +1,92 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook-autostart"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook"
+          }
+        ]
+      }
+    ],
+    "PostToolBatch": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Dell/.claude/plugins/cache/agents-observe/agents-observe/0.9.4/hooks/scripts/observe_cli.mjs\" hook"
+          }
+        ]
+      }
+    ]
+  }
+}

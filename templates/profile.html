@@ -41,7 +41,10 @@
         <div class="lower-grid">
 
             <div class="panel panel--transactions">
-                <h2 class="panel-title">Recent Transactions</h2>
+                <div class="panel-title-row">
+                    <h2 class="panel-title">Recent Transactions</h2>
+                    <a href="{{ url_for('add_expense') }}" class="btn-add-expense">+ Add Expense</a>
+                </div>
 
                 {% if recent_transactions %}
                 <div class="tx-table">
@@ -59,6 +62,10 @@
                             <span class="cat-pill cat-{{ tx.category_slug }}">{{ tx.category }}</span>
                         </span>
                         <span class="tx-amount">&#8377;{{ "{:,.2f}".format(tx.amount) }}</span>
+                        <span class="tx-actions">
+                            <a href="{{ url_for('edit_expense', id=tx.id) }}" class="tx-action-link">Edit</a>
+                            <a href="{{ url_for('delete_expense', id=tx.id) }}" class="tx-action-link tx-action-link--delete" onclick="return confirm('Delete this expense?')">Delete</a>
+                        </span>
                     </div>
                     {% endfor %}
                 </div>
