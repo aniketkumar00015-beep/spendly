@@ -183,6 +183,7 @@ def profile():
     recent_transactions = []
     for row in expense_rows[:6]:
         recent_transactions.append({
+            "id": row["id"],
             "date": _format_date(row["date"]),
             "title": row["title"],
             "category": row["category"],
@@ -206,19 +207,176 @@ def profile():
     )
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return render_template(
+            "expense_form.html",
+            form_title="Add Expense",
+            action_url=url_for("add_expense"),
+            expense=None,
+            error=None,
+            categories=sorted(CATEGORY_SLUGS),
+        )
+
+    title = request.form.get("title", "").strip()
+    amount_str = request.form.get("amount", "").strip()
+    category = request.form.get("category", "").strip()
+    date = request.form.get("date", "").strip()
+    note = request.form.get("note", "").strip()
+
+    submitted = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
+
+    error = None
+    if not title:
+        error = "Title is required."
+    elif len(title) > 120:
+        error = "Title must be 120 characters or fewer."
+
+    if not error:
+        try:
+            amount = float(amount_str)
+            if amount <= 0:
+                error = "Amount must be a positive number."
+        except ValueError:
+            error = "Amount must be a valid number."
+
+    if not error and category not in CATEGORY_SLUGS:
+        error = "Invalid category."
+
+    if not error:
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            error = "Date must be in YYYY-MM-DD format."
+
+    if not error and len(note) > 300:
+        error = "Note must be 300 characters or fewer."
+
+    if error:
+        return render_template(
+            "expense_form.html",
+            form_title="Add Expense",
+            action_url=url_for("add_expense"),
+            expense=submitted,
+            error=error,
+            categories=sorted(CATEGORY_SLUGS),
+        )
+
+    conn = get_db()
+    with conn:
+        conn.execute(
+            "INSERT INTO expenses (user_id, title, amount, category, date, note) VALUES (?, ?, ?, ?, ?, ?)",
+            (session["user_id"], title, float(amount_str), category, date, note or None),
+        )
+    conn.close()
+    return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    expense = conn.execute(
+        "SELECT id, title, amount, category, date, note FROM expenses WHERE id = ? AND user_id = ?",
+        (id, session["user_id"]),
+    ).fetchone()
+    conn.close()
+
+    if expense is None:
+        return "Not found", 404
+
+    if request.method == "GET":
+        return render_template(
+            "expense_form.html",
+            form_title="Edit Expense",
+            action_url=url_for("edit_expense", id=id),
+            expense=expense,
+            error=None,
+            categories=sorted(CATEGORY_SLUGS),
+        )
+
+    title = request.form.get("title", "").strip()
+    amount_str = request.form.get("amount", "").strip()
+    category = request.form.get("category", "").strip()
+    date = request.form.get("date", "").strip()
+    note = request.form.get("note", "").strip()
+
+    submitted = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
+
+    error = None
+    if not title:
+        error = "Title is required."
+    elif len(title) > 120:
+        error = "Title must be 120 characters or fewer."
+
+    if not error:
+        try:
+            amount = float(amount_str)
+            if amount <= 0:
+                error = "Amount must be a positive number."
+        except ValueError:
+            error = "Amount must be a valid number."
+
+    if not error and category not in CATEGORY_SLUGS:
+        error = "Invalid category."
+
+    if not error:
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            error = "Date must be in YYYY-MM-DD format."
+
+    if not error and len(note) > 300:
+        error = "Note must be 300 characters or fewer."
+
+    if error:
+        return render_template(
+            "expense_form.html",
+            form_title="Edit Expense",
+            action_url=url_for("edit_expense", id=id),
+            expense=submitted,
+            error=error,
+            categories=sorted(CATEGORY_SLUGS),
+        )
+
+    conn = get_db()
+    with conn:
+        conn.execute(
+            "UPDATE expenses SET title=?, amount=?, category=?, date=?, note=? WHERE id=? AND user_id=?",
+            (title, float(amount_str), category, date, note or None, id, session["user_id"]),
+        )
+    conn.close()
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    expense = conn.execute(
+        "SELECT id FROM expenses WHERE id = ? AND user_id = ?",
+        (id, session["user_id"]),
+    ).fetchone()
+
+    if expense is None:
+        conn.close()
+        return "Not found", 404
+
+    with conn:
+        conn.execute(
+            "DELETE FROM expenses WHERE id = ? AND user_id = ?",
+            (id, session["user_id"]),
+        )
+    conn.close()
+    return redirect(url_for("profile"))
 
 
 if __name__ == "__main__":

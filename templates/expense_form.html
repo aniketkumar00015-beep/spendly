@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/expense_form.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="expense-form-page">
+    <div class="expense-form-wrap">
+        <h1 class="expense-form-title">{{ form_title }}</h1>
+
+        {% if error %}
+        <div class="form-error-banner">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ action_url }}" class="expense-form">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" maxlength="120" required
+                       value="{{ expense.title if expense else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Amount (&#8377;)</label>
+                <input type="number" id="amount" name="amount" min="0.01" step="0.01" required
+                       value="{{ expense.amount if expense else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="" disabled {% if not expense %}selected{% endif %}>Select a category</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if expense and expense.category == cat %}selected{% endif %}>
+                        {{ cat | capitalize }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required
+                       value="{{ expense.date if expense else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="note">Note <span class="optional-label">(optional)</span></label>
+                <textarea id="note" name="note" maxlength="300" rows="3">{{ expense.note if expense and expense.note else '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('profile') }}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-save">Save</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
