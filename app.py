@@ -42,7 +42,7 @@ def register():
     if len(password) < 8:
         return render_template("register.html", error="Password must be at least 8 characters.")
 
-    password_hash = generate_password_hash(password)
+    password_hash = generate_password_hash(password, method='pbkdf2:sha256')
     conn = get_db()
     try:
         with conn:
@@ -136,6 +136,21 @@ def _format_date(value):
         return value or ""
 
 
+def _parse_date_filter(args):
+    raw_from = args.get("from", "").strip()
+    raw_to = args.get("to", "").strip()
+    if not (raw_from and raw_to):
+        return None, None, False, None
+    try:
+        dt_from = datetime.strptime(raw_from, "%Y-%m-%d")
+        dt_to = datetime.strptime(raw_to, "%Y-%m-%d")
+    except ValueError:
+        return None, None, False, None
+    if dt_from > dt_to:
+        return raw_from, raw_to, False, "Start date must be on or before end date."
+    return dt_from.strftime("%Y-%m-%d"), dt_to.strftime("%Y-%m-%d"), True, None
+
+
 @app.route("/profile")
 def profile():
     if not session.get("user_id"):
@@ -152,12 +167,18 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
-    expense_rows = conn.execute(
+    filter_from, filter_to, filter_active, filter_error = _parse_date_filter(request.args)
+
+    sql = (
         "SELECT id, title, amount, category, date "
-        "FROM expenses WHERE user_id = ? "
-        "ORDER BY date DESC, id DESC",
-        (session["user_id"],),
-    ).fetchall()
+        "FROM expenses WHERE user_id = ?"
+    )
+    params = [session["user_id"]]
+    if filter_active:
+        sql += " AND date BETWEEN ? AND ?"
+        params += [filter_from, filter_to]
+    sql += " ORDER BY date DESC, id DESC"
+    expense_rows = conn.execute(sql, params).fetchall()
     conn.close()
 
     total_spent = sum(row["amount"] for row in expense_rows)
@@ -181,7 +202,7 @@ def profile():
             })
 
     recent_transactions = []
-    for row in expense_rows[:6]:
+    for row in (expense_rows if filter_active else expense_rows[:6]):
         recent_transactions.append({
             "id": row["id"],
             "date": _format_date(row["date"]),
@@ -204,6 +225,12 @@ def profile():
         top_category=top_category,
         categories=categories,
         recent_transactions=recent_transactions,
+        filter_from=filter_from,
+        filter_to=filter_to,
+        filter_from_label=_format_date(filter_from) if filter_from else None,
+        filter_to_label=_format_date(filter_to) if filter_to else None,
+        filter_active=filter_active,
+        filter_error=filter_error,
     )
 
 

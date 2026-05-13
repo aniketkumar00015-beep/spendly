@@ -21,6 +21,37 @@
             </div>
         </div>
 
+        {# ---------- Filter bar ---------- #}
+        <div class="filter-bar">
+            <form method="GET" action="{{ url_for('profile') }}" class="filter-form">
+                <div class="filter-inputs">
+                    <label class="filter-label">
+                        From
+                        <input type="date" name="from" class="form-input filter-date"
+                               value="{{ filter_from or '' }}">
+                    </label>
+                    <label class="filter-label">
+                        To
+                        <input type="date" name="to" class="form-input filter-date"
+                               value="{{ filter_to or '' }}">
+                    </label>
+                    <button type="submit" class="btn-primary filter-apply">Apply</button>
+                </div>
+                <div class="filter-presets">
+                    <button type="button" class="btn-ghost preset-btn" data-preset="this-month">This Month</button>
+                    <button type="button" class="btn-ghost preset-btn" data-preset="last-month">Last Month</button>
+                    <button type="button" class="btn-ghost preset-btn" data-preset="last-3-months">Last 3 Months</button>
+                    <a href="{{ url_for('profile') }}" class="btn-ghost">All Time</a>
+                </div>
+            </form>
+            {% if filter_error %}
+            <p class="filter-error">{{ filter_error }}</p>
+            {% endif %}
+            {% if filter_active %}
+            <span class="filter-badge">Showing: {{ filter_from_label }} – {{ filter_to_label }}</span>
+            {% endif %}
+        </div>
+
         {# ---------- Stats row ---------- #}
         <div class="stat-row">
             <div class="stat-card">
@@ -42,7 +73,7 @@
 
             <div class="panel panel--transactions">
                 <div class="panel-title-row">
-                    <h2 class="panel-title">Recent Transactions</h2>
+                    <h2 class="panel-title">{% if filter_active %}All Transactions{% else %}Recent Transactions{% endif %}</h2>
                     <a href="{{ url_for('add_expense') }}" class="btn-add-expense">+ Add Expense</a>
                 </div>
 
@@ -113,5 +144,30 @@
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const today = new Date();
+            const y = today.getFullYear(), m = today.getMonth();
+            const pad = n => String(n).padStart(2, '0');
+            const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+            let from, to;
+
+            if (btn.dataset.preset === 'this-month') {
+                from = fmt(new Date(y, m, 1));
+                to   = fmt(new Date(y, m + 1, 0));
+            } else if (btn.dataset.preset === 'last-month') {
+                from = fmt(new Date(y, m - 1, 1));
+                to   = fmt(new Date(y, m, 0));
+            } else if (btn.dataset.preset === 'last-3-months') {
+                from = fmt(new Date(y, m - 2, 1));
+                to   = fmt(today);
+            }
+
+            document.querySelector('[name=from]').value = from;
+            document.querySelector('[name=to]').value   = to;
+            btn.closest('form').submit();
+        });
+    });
 </script>
 {% endblock %}
