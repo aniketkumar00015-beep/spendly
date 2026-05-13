@@ -42,7 +42,7 @@ def register():
     if len(password) < 8:
         return render_template("register.html", error="Password must be at least 8 characters.")
 
-    password_hash = generate_password_hash(password)
+    password_hash = generate_password_hash(password, method='pbkdf2:sha256')
     conn = get_db()
     try:
         with conn:
