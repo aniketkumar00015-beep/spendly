@@ -1,0 +1,128 @@
+.analytics-page {
+    min-height: calc(100vh - 60px - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    background: linear-gradient(135deg, #eceae4 0%, var(--paper) 40%, var(--paper) 60%, #eceae4 100%);
+}
+
+.coming-soon-card {
+    position: relative;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+    padding: 3rem 2.5rem 2.5rem;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* Decorative background circles */
+.cs-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--paper-warm);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.cs-circle-1 {
+    width: 140px;
+    height: 140px;
+    bottom: -40px;
+    left: -40px;
+}
+
+.cs-circle-2 {
+    width: 100px;
+    height: 100px;
+    bottom: -20px;
+    left: 60px;
+}
+
+/* Clock icon box */
+.cs-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    background: var(--accent);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.25rem;
+    color: #fff;
+}
+
+.cs-icon svg {
+    width: 32px;
+    height: 32px;
+    stroke: #fff;
+}
+
+/* Badge */
+.cs-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+}
+
+/* Title */
+.cs-title {
+    font-family: var(--font-body);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+}
+
+/* Subtitle */
+.cs-subtitle {
+    font-size: 0.95rem;
+    color: var(--ink-muted);
+    line-height: 1.7;
+    max-width: 340px;
+    margin: 0 auto 1.75rem;
+}
+
+/* Three animated dots */
+.cs-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.cs-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: cs-pulse 1.4s ease-in-out infinite;
+}
+
+.cs-dot:nth-child(2) { animation-delay: 0.2s; }
+.cs-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes cs-pulse {
+    0%, 80%, 100% { opacity: 0.35; transform: scale(0.85); }
+    40%            { opacity: 1;    transform: scale(1); }
+}
+
+/* Footer caption */
+.cs-footer-text {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+}
