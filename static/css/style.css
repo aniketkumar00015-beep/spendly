@@ -16,6 +16,7 @@
     --accent-2-light: #fdf3e3;
     --danger: #c0392b;
     --danger-light: #fdecea;
+    --danger-border: #f5c6c2;
     --border: #e4e1da;
     --border-soft: #eeebe4;
 
@@ -102,6 +103,7 @@ a { color: inherit; text-decoration: none; }
 
 .nav-links a { color: var(--ink-muted); transition: color 0.2s; }
 .nav-links a:hover { color: var(--ink); }
+.nav-active { color: var(--ink) !important; font-weight: 600; }
 
 .nav-cta {
     background: var(--ink) !important;
@@ -112,6 +114,22 @@ a { color: inherit; text-decoration: none; }
 }
 
 .nav-cta:hover { background: var(--accent) !important; }
+
+.btn-add-expense {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--paper);
+    background: var(--ink);
+    text-decoration: none;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.btn-add-expense:hover { background: var(--accent); }
 
 /* ------------------------------------------------------------------ */
 /* Main                                                                */
