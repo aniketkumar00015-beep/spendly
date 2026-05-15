@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from datetime import datetime
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import init_db, get_db
 
@@ -120,6 +120,28 @@ CATEGORY_SLUGS = {
     "food", "transport", "bills", "health",
     "shopping", "entertainment", "other",
 }
+
+
+def _validate_expense_form(title, amount_str, category, date, note):
+    if not title:
+        return None, "Title is required."
+    if len(title) > 120:
+        return None, "Title must be 120 characters or fewer."
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            return None, "Amount must be a positive number."
+    except ValueError:
+        return None, "Amount must be a valid number."
+    if category not in CATEGORY_SLUGS:
+        return None, "Invalid category."
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        return None, "Date must be in YYYY-MM-DD format."
+    if len(note) > 300:
+        return None, "Note must be 300 characters or fewer."
+    return amount, None
 
 
 def _category_slug(name):
@@ -263,32 +285,7 @@ def add_expense():
     note = request.form.get("note", "").strip()
 
     submitted = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
-
-    error = None
-    if not title:
-        error = "Title is required."
-    elif len(title) > 120:
-        error = "Title must be 120 characters or fewer."
-
-    if not error:
-        try:
-            amount = float(amount_str)
-            if amount <= 0:
-                error = "Amount must be a positive number."
-        except ValueError:
-            error = "Amount must be a valid number."
-
-    if not error and category not in CATEGORY_SLUGS:
-        error = "Invalid category."
-
-    if not error:
-        try:
-            datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            error = "Date must be in YYYY-MM-DD format."
-
-    if not error and len(note) > 300:
-        error = "Note must be 300 characters or fewer."
+    amount, error = _validate_expense_form(title, amount_str, category, date, note)
 
     if error:
         return render_template(
@@ -304,7 +301,7 @@ def add_expense():
     with conn:
         conn.execute(
             "INSERT INTO expenses (user_id, title, amount, category, date, note) VALUES (?, ?, ?, ?, ?, ?)",
-            (session["user_id"], title, float(amount_str), category, date, note or None),
+            (session["user_id"], title, amount, category, date, note or None),
         )
     conn.close()
     return redirect(url_for("profile"))
@@ -323,7 +320,7 @@ def edit_expense(id):
     conn.close()
 
     if expense is None:
-        return "Not found", 404
+        abort(404)
 
     if request.method == "GET":
         return render_template(
@@ -342,32 +339,7 @@ def edit_expense(id):
     note = request.form.get("note", "").strip()
 
     submitted = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
-
-    error = None
-    if not title:
-        error = "Title is required."
-    elif len(title) > 120:
-        error = "Title must be 120 characters or fewer."
-
-    if not error:
-        try:
-            amount = float(amount_str)
-            if amount <= 0:
-                error = "Amount must be a positive number."
-        except ValueError:
-            error = "Amount must be a valid number."
-
-    if not error and category not in CATEGORY_SLUGS:
-        error = "Invalid category."
-
-    if not error:
-        try:
-            datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            error = "Date must be in YYYY-MM-DD format."
-
-    if not error and len(note) > 300:
-        error = "Note must be 300 characters or fewer."
+    amount, error = _validate_expense_form(title, amount_str, category, date, note)
 
     if error:
         return render_template(
@@ -383,7 +355,7 @@ def edit_expense(id):
     with conn:
         conn.execute(
             "UPDATE expenses SET title=?, amount=?, category=?, date=?, note=? WHERE id=? AND user_id=?",
-            (title, float(amount_str), category, date, note or None, id, session["user_id"]),
+            (title, amount, category, date, note or None, id, session["user_id"]),
         )
     conn.close()
     return redirect(url_for("profile"))
@@ -402,7 +374,7 @@ def delete_expense(id):
 
     if expense is None:
         conn.close()
-        return "Not found", 404
+        abort(404)
 
     with conn:
         conn.execute(
