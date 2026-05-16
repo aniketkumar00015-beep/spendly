@@ -1,5 +1,4 @@
 import os
-import sqlite3
 from datetime import datetime
 from flask import Flask, render_template, request, session, redirect, url_for, abort
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -284,7 +283,7 @@ def add_expense():
     date = request.form.get("date", "").strip()
     note = request.form.get("note", "").strip()
 
-    submitted = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
+    form_values = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
     amount, error = _validate_expense_form(title, amount_str, category, date, note)
 
     if error:
@@ -292,7 +291,7 @@ def add_expense():
             "expense_form.html",
             form_title="Add Expense",
             action_url=url_for("add_expense"),
-            expense=submitted,
+            expense=form_values,
             error=error,
             categories=sorted(CATEGORY_SLUGS),
         )
@@ -307,26 +306,35 @@ def add_expense():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
-def edit_expense(id):
+@app.route("/expenses/<int:expense_id>/edit", methods=["GET", "POST"])
+def edit_expense(expense_id):
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
     conn = get_db()
+    user = conn.execute(
+        "SELECT id FROM users WHERE id = ?", (session["user_id"],)
+    ).fetchone()
+    if user is None:
+        conn.close()
+        session.clear()
+        return redirect(url_for("login"))
+
     expense = conn.execute(
         "SELECT id, title, amount, category, date, note FROM expenses WHERE id = ? AND user_id = ?",
-        (id, session["user_id"]),
+        (expense_id, session["user_id"]),
     ).fetchone()
-    conn.close()
 
     if expense is None:
+        conn.close()
         abort(404)
 
     if request.method == "GET":
+        conn.close()
         return render_template(
             "expense_form.html",
             form_title="Edit Expense",
-            action_url=url_for("edit_expense", id=id),
+            action_url=url_for("edit_expense", expense_id=expense_id),
             expense=expense,
             error=None,
             categories=sorted(CATEGORY_SLUGS),
@@ -338,38 +346,38 @@ def edit_expense(id):
     date = request.form.get("date", "").strip()
     note = request.form.get("note", "").strip()
 
-    submitted = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
+    form_values = {"title": title, "amount": amount_str, "category": category, "date": date, "note": note}
     amount, error = _validate_expense_form(title, amount_str, category, date, note)
 
     if error:
+        conn.close()
         return render_template(
             "expense_form.html",
             form_title="Edit Expense",
-            action_url=url_for("edit_expense", id=id),
-            expense=submitted,
+            action_url=url_for("edit_expense", expense_id=expense_id),
+            expense=form_values,
             error=error,
             categories=sorted(CATEGORY_SLUGS),
         )
 
-    conn = get_db()
     with conn:
         conn.execute(
             "UPDATE expenses SET title=?, amount=?, category=?, date=?, note=? WHERE id=? AND user_id=?",
-            (title, amount, category, date, note or None, id, session["user_id"]),
+            (title, amount, category, date, note or None, expense_id, session["user_id"]),
         )
     conn.close()
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/delete")
-def delete_expense(id):
+@app.route("/expenses/<int:expense_id>/delete")
+def delete_expense(expense_id):
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
     conn = get_db()
     expense = conn.execute(
         "SELECT id FROM expenses WHERE id = ? AND user_id = ?",
-        (id, session["user_id"]),
+        (expense_id, session["user_id"]),
     ).fetchone()
 
     if expense is None:
@@ -379,7 +387,7 @@ def delete_expense(id):
     with conn:
         conn.execute(
             "DELETE FROM expenses WHERE id = ? AND user_id = ?",
-            (id, session["user_id"]),
+            (expense_id, session["user_id"]),
         )
     conn.close()
     return redirect(url_for("profile"))
