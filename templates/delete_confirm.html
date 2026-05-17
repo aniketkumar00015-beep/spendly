@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Delete Expense{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/delete_confirm.css') }}">
+{% endblock %}
+{% block content %}
+<div class="delete-confirm-page">
+    <div class="delete-confirm-wrap">
+        <h1 class="delete-confirm-title">Delete Expense</h1>
+        <div class="confirm-card">
+            <div class="confirm-warning">
+                <p>Are you sure you want to permanently delete this expense? This action cannot be undone.</p>
+            </div>
+            <div class="confirm-details">
+                <p class="confirm-expense-title">{{ expense.title }}</p>
+                <p class="confirm-expense-meta">{{ expense.category | capitalize }} &mdash; &#8377;{{ "{:,.2f}".format(expense.amount) }}</p>
+            </div>
+            <div class="confirm-actions">
+                <a href="{{ url_for('profile') }}" class="btn-cancel-confirm">Cancel</a>
+                <form method="POST">
+                    <button type="submit" class="btn-danger">Yes, delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

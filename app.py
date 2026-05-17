@@ -369,20 +369,24 @@ def edit_expense(expense_id):
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:expense_id>/delete")
+@app.route("/expenses/<int:expense_id>/delete", methods=["GET", "POST"])
 def delete_expense(expense_id):
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
     conn = get_db()
     expense = conn.execute(
-        "SELECT id FROM expenses WHERE id = ? AND user_id = ?",
+        "SELECT id, title, amount, category FROM expenses WHERE id = ? AND user_id = ?",
         (expense_id, session["user_id"]),
     ).fetchone()
 
     if expense is None:
         conn.close()
         abort(404)
+
+    if request.method == "GET":
+        conn.close()
+        return render_template("delete_confirm.html", expense=expense)
 
     with conn:
         conn.execute(
